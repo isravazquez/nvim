@@ -36,12 +36,12 @@ opt.splitright = true -- split vertical window to the right
 opt.splitbelow = true -- split horizontal window to the bottom
 
 -- Others
---vim.opt.showcmd = true
---vim.opt.showmode = false
---vim.opt.laststatus = 2
---vim.opt.autowrite = true
---vim.opt.autoread = true
---vim.opt.mouse = "a"
---vim.opt.breakindent = true
---vim.opt.shiftround = true
---vim.opt.ruler = true
+vim.opt.showcmd = true
+vim.opt.showmode = false
+vim.opt.laststatus = 2
+vim.opt.autowrite = true
+vim.opt.autoread = true
+vim.opt.mouse = "a"
+vim.opt.breakindent = true
+vim.opt.shiftround = true
+vim.opt.ruler = true
