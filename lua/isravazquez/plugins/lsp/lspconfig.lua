@@ -48,7 +48,7 @@ return {
         keymap.set("n", "<leader>rn", vim.lsp.buf.rename, opts) -- smart rename
 
         opts.desc = "Show buffer diagnostics"
-        keymap.set("n", "<leader>D", "<cmd>Telescope diagnostics bufnr=0<CR>", opts) -- show  diagnostics for file
+        keymap.set("n", "<leader>D", "<cmd>Telescope diagnostics bufnr=0<CR>", opts) -- show diagnostics for file
 
         opts.desc = "Show line diagnostics"
         keymap.set("n", "<leader>d", vim.diagnostic.open_float, opts) -- show diagnostics for line
@@ -71,7 +71,6 @@ return {
     local capabilities = cmp_nvim_lsp.default_capabilities()
 
     -- Change the Diagnostic symbols in the sign column (gutter)
-    -- (not in youtube nvim video)
     local signs = { Error = " ", Warn = " ", Hint = "󰠠 ", Info = " " }
     for type, icon in pairs(signs) do
       local hl = "DiagnosticSign" .. type
@@ -81,19 +80,31 @@ return {
     mason_lspconfig.setup_handlers({
       -- default handler for installed servers
       function(server_name)
+        local server = lspconfig[server_name]
+        if not server or not server.document_config then
+          return
+        end
+        local default_config = server.document_config.default_config or {}
+        if default_config.cmd == nil then
+          return
+        end
+
         lspconfig[server_name].setup({
           capabilities = capabilities,
         })
       end,
+      -- jdtls is configured by nvim-jdtls in ftplugin/java.lua
+      ["jdtls"] = function() end,
+      -- avoid broken setup via lspconfig health for java_language_server
+      ["java_language_server"] = function() end,
       ["svelte"] = function()
         -- configure svelte server
         lspconfig["svelte"].setup({
           capabilities = capabilities,
-          on_attach = function(client, bufnr)
+          on_attach = function(client)
             vim.api.nvim_create_autocmd("BufWritePost", {
               pattern = { "*.js", "*.ts" },
               callback = function(ctx)
-                -- Here use ctx.match instead of ctx.file
                 client.notify("$/onDidChangeTsOrJsFile", { uri = ctx.match })
               end,
             })
@@ -120,7 +131,6 @@ return {
           capabilities = capabilities,
           settings = {
             Lua = {
-              -- make the language server recognize "vim" global
               diagnostics = {
                 globals = { "vim" },
               },
