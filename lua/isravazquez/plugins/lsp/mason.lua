@@ -29,7 +29,6 @@ return {
 			ensure_installed = {
 				"astro",
 				"angularls",
-				"jdtls",
 				"ts_ls",
 				"biome",
 				"html",
@@ -46,6 +45,7 @@ return {
 
 		mason_tool_installer.setup({
 			ensure_installed = {
+				"jdtls", -- java language server (managed via nvim-jdtls)
 				"prettier", -- prettier formatter
 				"stylua", -- lua formatter
 				"isort", -- python formatter
