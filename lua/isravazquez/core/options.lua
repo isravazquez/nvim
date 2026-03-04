@@ -43,3 +43,6 @@ vim.opt.mouse = "a"
 vim.opt.breakindent = true
 vim.opt.shiftround = true
 vim.opt.ruler = true
+
+-- trigger CursorHold events faster (helps auto-reload external file changes)
+vim.opt.updatetime = 800

@@ -5,11 +5,44 @@ local keymap = vim.keymap -- for conciseness
 keymap.set("i", "jk", "<ESC>", { desc = "Exit insert mode with jk" })
 keymap.set("v", "fd", "<ESC>", { desc = "Exit visual mode with fd" })
 
+-- In insert mode: Esc closes completion popup first, then exits insert on next Esc
+keymap.set("i", "<Esc>", function()
+  if vim.fn.pumvisible() == 1 then
+    return "<C-e>"
+  end
+  return "<Esc>"
+end, { expr = true, silent = true, desc = "Close completion popup or exit insert" })
+
 keymap.set("n", "<leader>nh", ":nohl<CR>", { desc = "Clear search highlights" })
+
+-- LSP code actions (global mapping so it appears in which-key)
+keymap.set({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, { desc = "LSP Code Actions" })
+keymap.set("n", "<leader>rr", "<cmd>checktime %<CR>", { desc = "Reload current file from disk" })
 
 -- increment/decrement numbers
 keymap.set("n", "<leader>+", "<C-a>", { desc = "Increment number" }) -- increment
 keymap.set("n", "<leader>-", "<C-x>", { desc = "Decrement number" }) -- decrement
+
+-- Go to relative line with a prompt (+/-N)
+keymap.set("n", "<leader>gl", function()
+  vim.ui.input({ prompt = "Linea relativa (+/-N): " }, function(input)
+    if not input or input == "" then
+      return
+    end
+
+    local delta = tonumber(input)
+    if not delta then
+      vim.notify("Valor invalido. Usa un numero, ej: 5 o -5", vim.log.levels.WARN)
+      return
+    end
+
+    if delta > 0 then
+      vim.cmd("normal! " .. delta .. "j")
+    elseif delta < 0 then
+      vim.cmd("normal! " .. math.abs(delta) .. "k")
+    end
+  end)
+end, { desc = "Go to relative line (+/-N)" })
 
 -- window management
 keymap.set("n", "<leader>sv", "<C-w>v", { desc = "Split window vertically" }) -- split window vertically

@@ -4,12 +4,13 @@ return {
   dependencies = {
     "hrsh7th/cmp-buffer", -- source for text in buffer
     "hrsh7th/cmp-path", -- source for file system paths
+    "hrsh7th/cmp-cmdline", -- source for ":", "/" and "?" cmdline completion
+    "zbirenbaum/copilot-cmp", -- source for GitHub Copilot
     {
       "L3MON4D3/LuaSnip",
       -- follow latest release.
       version = "v2.*", -- Replace <CurrentMajor> by the latest released major (first number of latest release)
-      -- install jsregexp (optional!).
-      build = "make install_jsregexp",
+      -- jsregexp es opcional; se omite para evitar fallos de submodulos.
     },
     "saadparwaiz1/cmp_luasnip", -- for autocompletion
     "rafamadriz/friendly-snippets", -- useful snippets
@@ -17,10 +18,16 @@ return {
   },
   config = function()
     local cmp = require("cmp")
-
+    local context = require("cmp.config.context")
     local luasnip = require("luasnip")
-
     local lspkind = require("lspkind")
+
+    local copilot_in_comments = true
+
+    vim.keymap.set("n", "<leader>ac", function()
+      copilot_in_comments = not copilot_in_comments
+      vim.notify("Copilot en comentarios: " .. (copilot_in_comments and "ON" or "OFF"))
+    end, { desc = "Toggle Copilot comments" })
 
     -- loads vscode style snippets from installed plugins (e.g. friendly-snippets)
     require("luasnip.loaders.from_vscode").lazy_load()
@@ -45,7 +52,19 @@ return {
       }),
       -- sources for autocompletion
       sources = cmp.config.sources({
-        { name = "nvim_lsp"},
+        { name = "nvim_lsp" },
+        {
+          name = "copilot",
+          group_index = 2,
+          max_item_count = 3,
+          keyword_length = 3,
+          entry_filter = function()
+            if copilot_in_comments then
+              return true
+            end
+            return not context.in_treesitter_capture("comment") and not context.in_syntax_group("Comment")
+          end,
+        },
         { name = "luasnip" }, -- snippets
         { name = "buffer" }, -- text within current buffer
         { name = "path" }, -- file system paths
@@ -59,5 +78,24 @@ return {
         }),
       },
     })
+
+    -- Use buffer source for `/` and `?`.
+    cmp.setup.cmdline({ "/", "?" }, {
+      mapping = cmp.mapping.preset.cmdline(),
+      sources = {
+        { name = "buffer" },
+      },
+    })
+
+    -- Use cmdline & path sources for `:`.
+    cmp.setup.cmdline(":", {
+      mapping = cmp.mapping.preset.cmdline(),
+      sources = cmp.config.sources({
+        { name = "path" },
+      }, {
+        { name = "cmdline" },
+      }),
+    })
+
   end,
 }
